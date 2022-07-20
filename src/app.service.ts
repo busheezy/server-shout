@@ -1,3 +1,4 @@
+import IoRedisNestJsMod from '@nestjs-modules/ioredis';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ensureDir } from 'fs-extra';
 import { join } from 'node:path';
@@ -6,14 +7,23 @@ import { AppPromptService } from './app.prompts.js';
 import { ActionType } from './app.types.js';
 import { ShoutAction } from './cfg/cfg.types.js';
 import { SshService } from './ssh/ssh.service.js';
+import { SteamcmdService } from './steamcmd/steamcmd.service.js';
+import * as Redis from 'ioredis';
+import { CfgService } from './cfg/cfg.service.js';
+
+const { InjectRedis } = IoRedisNestJsMod;
 
 const workDirPath = join(process.cwd(), '.shout');
+const CSGO_LAST_UPDATE_KEY = 'CSGO_LAST_UPDATE_KEY';
 
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(
     private readonly appPromptService: AppPromptService,
     private readonly sshService: SshService,
+    private readonly steamCmdService: SteamcmdService,
+    private readonly cfgService: CfgService,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async startPrompts() {
@@ -49,7 +59,30 @@ export class AppService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    setInterval(() => {
+      this.startUpdateCheck();
+    }, 60 * 1000);
+
     await this.startPrompts();
+  }
+
+  async startUpdateCheck() {
+    const { buildid } = await this.steamCmdService.getUpdateInfo();
+    const previousBuildId = await this.redis.get(CSGO_LAST_UPDATE_KEY);
+
+    if (buildid !== previousBuildId) {
+      await this.updateAllServers();
+      await this.redis.set(CSGO_LAST_UPDATE_KEY, buildid);
+    }
+  }
+
+  async updateAllServers() {
+    const action: ShoutAction = {
+      commands: ['/home/$USER/gs/csgoserver update'],
+      name: 'Update',
+    };
+
+    await this.sshService.shoutCommand(action, this.cfgService.servers, true);
   }
 
   ensureWorkDirExists() {

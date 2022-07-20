@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import Bluebird from 'bluebird';
+import fsExtraMod from 'fs-extra';
 import { NodeSSH, SSHExecCommandOptions } from 'node-ssh';
+import { join } from 'node:path';
 import { ShoutAction, ShoutServer } from '../cfg/cfg.types.js';
+
+const { ensureDir, appendFile } = fsExtraMod;
 
 @Injectable()
 export class SshService {
@@ -15,32 +19,53 @@ export class SshService {
     }
   }
 
-  async shoutCommand(action: ShoutAction, servers: ShoutServer[]) {
+  async shoutCommand(
+    action: ShoutAction,
+    servers: ShoutServer[],
+    quiet = false,
+  ) {
     await Bluebird.mapSeries(servers, async (server) => {
       const connection = await this.connect(server);
 
-      const options: SSHExecCommandOptions = {
-        execOptions: {
-          pty: true,
-        },
-      };
+      const logPath = join(process.cwd(), '.shout', 'logs');
+      const serverLogOutPath = join(logPath, `${server.name}-out.log`);
+      const serverLogErrPath = join(logPath, `${server.name}-err.log`);
 
-      if (action.cwd) {
-        options.cwd = action.cwd;
-      }
+      await ensureDir(logPath);
 
-      options.onStdout = (chunk) => {
-        const chunkSz = chunk.toString();
-        process.stdout.write(chunkSz);
-      };
+      await Bluebird.mapSeries(action.commands, async (command) => {
+        await appendFile(serverLogOutPath, `$ ${command}\n`);
 
-      options.onStderr = (chunk) => {
-        const chunkSz = chunk.toString();
-        process.stderr.write(chunkSz);
-      };
+        const options: SSHExecCommandOptions = {
+          execOptions: {
+            pty: true,
+          },
+        };
 
-      await Bluebird.mapSeries(action.commands, (command) => {
-        return connection.execCommand(command, options);
+        if (action.cwd) {
+          options.cwd = action.cwd;
+        }
+
+        options.onStdout = async (chunk) => {
+          await appendFile(serverLogOutPath, chunk);
+
+          if (!quiet) {
+            const chunkSz = chunk.toString();
+            process.stdout.write(chunkSz);
+          }
+        };
+
+        options.onStderr = async (chunk) => {
+          await appendFile(serverLogErrPath, chunk);
+
+          if (!quiet) {
+            const chunkSz = chunk.toString();
+            process.stderr.write(chunkSz);
+          }
+        };
+
+        await connection.execCommand(command, options);
+        await Bluebird.delay(50);
       });
     });
   }
