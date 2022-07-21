@@ -78,7 +78,13 @@ export class AppService implements OnModuleInit {
 
   async updateAllServers() {
     const action: ShoutAction = {
-      commands: ['/home/$USER/gs/csgoserver update'],
+      commands: [
+        '/home/$USER/gs/csgoserver send "say An update was released. The server is about to restart."',
+        '/home/$USER/gs/csgoserver send "say An update was released. The server is about to restart."',
+        '/home/$USER/gs/csgoserver send "say An update was released. The server is about to restart."',
+        'sleep 15',
+        '/home/$USER/gs/csgoserver update',
+      ],
       name: 'Update',
     };
 
