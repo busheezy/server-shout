@@ -19,6 +19,22 @@ export class SshService {
     }
   }
 
+  getServerLogPaths(server: ShoutServer) {
+    const logPath = join(process.cwd(), '.shout', 'logs', server.name);
+    const serverLogOutPath = join(logPath, 'out.log');
+    const serverLogErrPath = join(logPath, 'err.log');
+    const serverLogBgOutPath = join(logPath, 'bg-out.log');
+    const serverLogBgErrPath = join(logPath, 'bg-err.log');
+
+    return {
+      logPath,
+      serverLogOutPath,
+      serverLogErrPath,
+      serverLogBgOutPath,
+      serverLogBgErrPath,
+    };
+  }
+
   async shoutCommand(
     action: ShoutAction,
     servers: ShoutServer[],
@@ -27,46 +43,65 @@ export class SshService {
     await Bluebird.mapSeries(servers, async (server) => {
       const connection = await this.connect(server);
 
-      const logPath = join(process.cwd(), '.shout', 'logs');
-      const serverLogOutPath = join(logPath, `${server.name}-out.log`);
-      const serverLogErrPath = join(logPath, `${server.name}-err.log`);
+      const { logPath, serverLogOutPath } = this.getServerLogPaths(server);
 
       await ensureDir(logPath);
+      const options = this.getOptions(action, server, quiet);
 
       await Bluebird.mapSeries(action.commands, async (command) => {
         await appendFile(serverLogOutPath, `$ ${command}\n`);
-
-        const options: SSHExecCommandOptions = {
-          execOptions: {
-            pty: true,
-          },
-        };
-
-        if (action.cwd) {
-          options.cwd = action.cwd;
-        }
-
-        options.onStdout = async (chunk) => {
-          await appendFile(serverLogOutPath, chunk);
-
-          if (!quiet) {
-            const chunkSz = chunk.toString();
-            process.stdout.write(chunkSz);
-          }
-        };
-
-        options.onStderr = async (chunk) => {
-          await appendFile(serverLogErrPath, chunk);
-
-          if (!quiet) {
-            const chunkSz = chunk.toString();
-            process.stderr.write(chunkSz);
-          }
-        };
+        console.log(`$ ${command}`);
 
         await connection.execCommand(command, options);
         await Bluebird.delay(50);
       });
     });
+  }
+
+  getOptions(
+    action: ShoutAction,
+    server: ShoutServer,
+    quiet: boolean,
+  ): SSHExecCommandOptions {
+    const {
+      serverLogOutPath,
+      serverLogErrPath,
+      serverLogBgOutPath,
+      serverLogBgErrPath,
+    } = this.getServerLogPaths(server);
+
+    const options: SSHExecCommandOptions = {
+      execOptions: {
+        pty: true,
+      },
+    };
+
+    if (action.cwd) {
+      options.cwd = action.cwd;
+    }
+
+    options.onStdout = async (chunk) => {
+      if (quiet) {
+        await appendFile(serverLogBgOutPath, chunk);
+      } else {
+        await appendFile(serverLogOutPath, chunk);
+
+        const chunkSz = chunk.toString();
+        process.stdout.write(chunkSz);
+      }
+    };
+
+    options.onStderr = async (chunk) => {
+      if (quiet) {
+        await appendFile(serverLogBgErrPath, chunk);
+      } else {
+        await appendFile(serverLogErrPath, chunk);
+
+        const chunkSz = chunk.toString();
+        process.stderr.write(chunkSz);
+      }
+    };
+
+    return options;
   }
 }
