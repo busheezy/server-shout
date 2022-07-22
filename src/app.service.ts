@@ -1,5 +1,4 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import Bluebird from 'bluebird';
 import { ensureDir } from 'fs-extra';
 import { join } from 'node:path';
 import { ShoutExitEarly } from './app.errors.js';
@@ -59,6 +58,8 @@ export class AppService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    await this.ensureWorkDirExists();
+    await this.steamCmdHandlerService.startCheckInterval();
     this.registerTriggerActions();
     await this.startPrompts();
   }

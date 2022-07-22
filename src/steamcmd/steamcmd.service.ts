@@ -18,7 +18,7 @@ const binaryPath = join(binaryFolderPath, 'steamcmd.sh');
 const { Axios } = axiosMod;
 const { access, chmod, constants, createWriteStream, ensureDir } = fsExtraMod;
 
-const axios = new Axios();
+const axios = new Axios({});
 
 interface Update {
   buildid: string;

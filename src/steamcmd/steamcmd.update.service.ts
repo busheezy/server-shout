@@ -1,7 +1,6 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import Bluebird, { some } from 'bluebird';
+import { Injectable } from '@nestjs/common';
+import Bluebird from 'bluebird';
 import {
-  ShoutServer,
   ShoutTriggeredAction,
   ShoutTriggeredActionTriggerType,
 } from '../cfg/cfg.types.js';
@@ -17,7 +16,7 @@ import { filterServersByActionParams } from '../app.lib.js';
 type RegisteredTriggers = Record<string, ShoutTriggeredAction[]>;
 
 @Injectable()
-export class SteamcmdUpdateService implements OnModuleInit {
+export class SteamcmdUpdateService {
   private registeredTriggers: RegisteredTriggers = {};
 
   constructor(
@@ -42,10 +41,6 @@ export class SteamcmdUpdateService implements OnModuleInit {
     }
 
     this.registeredTriggers[gameId].push(triggeredAction);
-  }
-
-  onModuleInit() {
-    return this.startCheckInterval();
   }
 
   async startCheckInterval() {
