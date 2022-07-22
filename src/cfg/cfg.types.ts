@@ -54,7 +54,7 @@ export class ShoutAction {
   cwd?: string;
 }
 
-enum ShoutTriggeredActionTriggerType {
+export enum ShoutTriggeredActionTriggerType {
   GAME_UPDATE = 'game_update',
   CRON = 'cron',
 }
@@ -94,7 +94,25 @@ class ShoutTriggeredActionTriggerCron extends ShoutTriggeredActionTrigger {
   params: ShoutTriggeredActionTriggerCronParams;
 }
 
+type ShoutTriggeredActionTriggers =
+  | ShoutTriggeredActionTriggerGameUpdate
+  | ShoutTriggeredActionTriggerCron;
+
 export class ShoutTriggeredAction extends ShoutAction {
+  @ValidateNested({
+    each: true,
+  })
+  @Type(() => ShoutServer)
+  @IsOptional()
+  allow_servers?: ShoutServer[];
+
+  @ValidateNested({
+    each: true,
+  })
+  @Type(() => ShoutServer)
+  @IsOptional()
+  deny_servers?: ShoutServer[];
+
   @ValidateNested()
   @Type(() => ShoutTriggeredActionTrigger, {
     keepDiscriminatorProperty: true,
@@ -112,9 +130,7 @@ export class ShoutTriggeredAction extends ShoutAction {
       ],
     },
   })
-  trigger:
-    | ShoutTriggeredActionTriggerGameUpdate
-    | ShoutTriggeredActionTriggerCron;
+  trigger: ShoutTriggeredActionTriggers;
 }
 
 export class ShoutConfig {

@@ -26,7 +26,7 @@ interface Update {
 }
 
 @Injectable()
-export class SteamcmdService {
+export class SteamCmdService {
   async ensureSteamCmdInstalled() {
     const executable = await this.isBinaryExecutable();
 
@@ -50,7 +50,7 @@ export class SteamcmdService {
     }
   }
 
-  getUpdateInfo(): Promise<Update> {
+  getUpdateInfo(gameId: string): Promise<Update> {
     return new Promise(async (resolve) => {
       await this.ensureSteamCmdInstalled();
 
@@ -59,7 +59,7 @@ export class SteamcmdService {
         [
           '+login anonymous',
           '+app_info_update 1',
-          '+app_info_print 740',
+          `+app_info_print ${gameId}`,
           '+quit',
         ],
         {
@@ -74,7 +74,7 @@ export class SteamcmdService {
       });
 
       steamCmdPty.onExit(() => {
-        const info = this.parseInfoData(data);
+        const info = this.parseInfoData(gameId, data);
         resolve(info);
       });
     });
@@ -134,14 +134,14 @@ export class SteamcmdService {
     });
   }
 
-  private stripExtraTextFromInfo(data: string): string {
+  private stripExtraTextFromInfo(gameId: string, data: string): string {
     const lines = data.split(/\r?\n/);
 
     let info = '';
     let reachedStart = false;
 
     lines.forEach((line) => {
-      if (line === '"740"') {
+      if (line === `"${gameId}"`) {
         reachedStart = true;
       }
 
@@ -153,10 +153,10 @@ export class SteamcmdService {
     return info;
   }
 
-  private parseInfoData(data: string) {
-    const infoSz = this.stripExtraTextFromInfo(data);
+  private parseInfoData(gameId: string, data: string) {
+    const infoSz = this.stripExtraTextFromInfo(gameId, data);
     const fullInfo = deserialize(infoSz);
-    const info = fullInfo['740']['depots']['branches']['public'] as Update;
+    const info = fullInfo[gameId]['depots']['branches']['public'] as Update;
     return info;
   }
 }

@@ -57,7 +57,29 @@
       "additionalProperties": false,
       "properties": {
         "connection": {
-          "$ref": "#/definitions/ShoutServerConnection"
+          "additionalProperties": false,
+          "properties": {
+            "host": {
+              "type": "string"
+            },
+            "passphrase": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "privateKey": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "host",
+            "username"
+          ],
+          "type": "object"
         },
         "name": {
           "type": "string"
@@ -69,34 +91,15 @@
       ],
       "type": "object"
     },
-    "ShoutServerConnection": {
-      "additionalProperties": false,
-      "properties": {
-        "host": {
-          "type": "string"
-        },
-        "passphrase": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        },
-        "privateKey": {
-          "type": "string"
-        },
-        "username": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "host",
-        "username"
-      ],
-      "type": "object"
-    },
     "ShoutTriggeredAction": {
       "additionalProperties": false,
       "properties": {
+        "allow_servers": {
+          "items": {
+            "$ref": "#/definitions/ShoutServer"
+          },
+          "type": "array"
+        },
         "commands": {
           "items": {
             "type": "string"
@@ -106,16 +109,71 @@
         "cwd": {
           "type": "string"
         },
+        "deny_servers": {
+          "items": {
+            "$ref": "#/definitions/ShoutServer"
+          },
+          "type": "array"
+        },
         "name": {
           "type": "string"
         },
         "trigger": {
           "anyOf": [
             {
-              "$ref": "#/definitions/ShoutTriggeredActionTriggerGameUpdate"
+              "additionalProperties": false,
+              "properties": {
+                "params": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "game_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "game_id"
+                  ],
+                  "type": "object"
+                },
+                "type": {
+                  "const": "game_update",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "params",
+                "type"
+              ],
+              "type": "object"
             },
             {
-              "$ref": "#/definitions/ShoutTriggeredActionTriggerCron"
+              "additionalProperties": false,
+              "properties": {
+                "params": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "schedule": {
+                      "type": "string"
+                    },
+                    "time_zone": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "schedule"
+                  ],
+                  "type": "object"
+                },
+                "type": {
+                  "const": "cron",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "params",
+                "type"
+              ],
+              "type": "object"
             }
           ]
         }
@@ -124,67 +182,6 @@
         "commands",
         "name",
         "trigger"
-      ],
-      "type": "object"
-    },
-    "ShoutTriggeredActionTriggerCron": {
-      "additionalProperties": false,
-      "properties": {
-        "params": {
-          "$ref": "#/definitions/ShoutTriggeredActionTriggerCronParams"
-        },
-        "type": {
-          "const": "cron",
-          "type": "string"
-        }
-      },
-      "required": [
-        "params",
-        "type"
-      ],
-      "type": "object"
-    },
-    "ShoutTriggeredActionTriggerCronParams": {
-      "additionalProperties": false,
-      "properties": {
-        "schedule": {
-          "type": "string"
-        },
-        "time_zone": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "schedule"
-      ],
-      "type": "object"
-    },
-    "ShoutTriggeredActionTriggerGameUpdate": {
-      "additionalProperties": false,
-      "properties": {
-        "params": {
-          "$ref": "#/definitions/ShoutTriggeredActionTriggerGameUpdateParams"
-        },
-        "type": {
-          "const": "game_update",
-          "type": "string"
-        }
-      },
-      "required": [
-        "params",
-        "type"
-      ],
-      "type": "object"
-    },
-    "ShoutTriggeredActionTriggerGameUpdateParams": {
-      "additionalProperties": false,
-      "properties": {
-        "game_id": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "game_id"
       ],
       "type": "object"
     }

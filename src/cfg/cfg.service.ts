@@ -59,4 +59,8 @@ export class CfgService {
   get quickActions() {
     return this.config.quick_actions;
   }
+
+  get triggeredActions() {
+    return this.config.triggered_actions;
+  }
 }

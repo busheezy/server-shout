@@ -11,7 +11,9 @@ specifiers:
   '@types/bluebird': ^3.5.36
   '@types/express': ^4.17.13
   '@types/fs-extra': ^9.0.13
+  '@types/ioredis': ^4.28.10
   '@types/node': ^16.0.0
+  '@types/node-cron': ^3.0.2
   '@types/prompts': ^2.0.14
   '@types/ssh2': ^1.11.4
   '@types/string-template': ^1.0.2
@@ -28,6 +30,7 @@ specifiers:
   eslint-plugin-prettier: ^4.0.0
   fs-extra: ^10.1.0
   ioredis: ^4.0.0
+  node-cron: ^3.0.1
   node-pty: ^0.10.1
   node-ssh: ^12.0.5
   prettier: ^2.3.2
@@ -61,6 +64,7 @@ dependencies:
   dotenv: 16.0.1
   fs-extra: 10.1.0
   ioredis: 4.28.5
+  node-cron: 3.0.1
   node-pty: 0.10.1
   node-ssh: 12.0.5
   prompts: 2.4.2
@@ -78,7 +82,9 @@ devDependencies:
   '@nestjs/schematics': 9.0.1_typescript@4.7.4
   '@types/express': 4.17.13
   '@types/fs-extra': 9.0.13
+  '@types/ioredis': 4.28.10
   '@types/node': 16.11.45
+  '@types/node-cron': 3.0.2
   '@types/prompts': 2.0.14
   '@types/ssh2': 1.11.4
   '@types/string-template': 1.0.2
@@ -549,6 +555,12 @@ packages:
       '@types/node': 16.11.45
     dev: true
 
+  /@types/ioredis/4.28.10:
+    resolution: {integrity: sha512-69LyhUgrXdgcNDv7ogs1qXZomnfOEnSmrmMFqKgt1XMJxmoOSG/u3wYy13yACIfKuMJ8IhKgHafDO3sx19zVQQ==}
+    dependencies:
+      '@types/node': 16.11.45
+    dev: true
+
   /@types/json-schema/7.0.11:
     resolution: {integrity: sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==}
 
@@ -564,6 +576,10 @@ packages:
     resolution: {integrity: sha512-foLGjgrJkUjLG/o2t2ymlZGEoBNBa/TfoUZ7oCTkOjP1T43UGBJspovJou/l3ZuHvye2ewR5cZNtp2zyWgILMA==}
     dependencies:
       '@types/node': 16.11.45
+    dev: true
+
+  /@types/node-cron/3.0.2:
+    resolution: {integrity: sha512-SK/4GYWiWvGLPl/yv+Tm5oLYbzMx1V3y7CsNTvOb3vF8O9oXH11U6/zckISHnBl4YH8MvXHFIUXbYoBONSdmzw==}
     dev: true
 
   /@types/node/14.18.22:
@@ -2397,6 +2413,11 @@ packages:
 
   /neo-async/2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
+
+  /node-cron/3.0.1:
+    resolution: {integrity: sha512-RAWZTNn2M5KDIUV/389UX0EXsqvdFAwc9QwHQceh0Ga56dygqSRthqIjwpgZsoDspHGt2rkHdk9Z4RgfPMdALw==}
+    engines: {node: '>=6.0.0'}
+    dev: false
 
   /node-emoji/1.11.0:
     resolution: {integrity: sha512-wo2DpQkQp7Sjm2A0cq+sN7EHKO6Sl0ctXeBdFZrL9T9+UywORbufTcTZxom8YqpLQt/FqNMUkOpkZrJVYSKD3A==}

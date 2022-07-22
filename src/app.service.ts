@@ -1,29 +1,29 @@
-import IoRedisNestJsMod from '@nestjs-modules/ioredis';
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import Bluebird from 'bluebird';
 import { ensureDir } from 'fs-extra';
 import { join } from 'node:path';
 import { ShoutExitEarly } from './app.errors.js';
 import { AppPromptService } from './app.prompts.js';
 import { ActionType } from './app.types.js';
-import { ShoutAction } from './cfg/cfg.types.js';
-import { SshService } from './ssh/ssh.service.js';
-import { SteamcmdService } from './steamcmd/steamcmd.service.js';
-import * as Redis from 'ioredis';
 import { CfgService } from './cfg/cfg.service.js';
-
-const { InjectRedis } = IoRedisNestJsMod;
+import {
+  ShoutAction,
+  ShoutTriggeredActionTriggerType,
+} from './cfg/cfg.types.js';
+import { SshService } from './ssh/ssh.service.js';
+import { SteamcmdUpdateService } from './steamcmd/steamcmd.update.service.js';
+import * as cron from 'node-cron';
+import { filterServersByActionParams } from './app.lib.js';
 
 const workDirPath = join(process.cwd(), '.shout');
-const CSGO_LAST_UPDATE_KEY = 'CSGO_LAST_UPDATE_KEY';
 
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(
     private readonly appPromptService: AppPromptService,
     private readonly sshService: SshService,
-    private readonly steamCmdService: SteamcmdService,
     private readonly cfgService: CfgService,
-    @InjectRedis() private readonly redis: Redis,
+    private readonly steamCmdHandlerService: SteamcmdUpdateService,
   ) {}
 
   async startPrompts() {
@@ -59,36 +59,40 @@ export class AppService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    setInterval(() => {
-      this.startUpdateCheck();
-    }, 60 * 1000);
-
+    this.registerTriggerActions();
     await this.startPrompts();
   }
 
-  async startUpdateCheck() {
-    const { buildid } = await this.steamCmdService.getUpdateInfo();
-    const previousBuildId = await this.redis.get(CSGO_LAST_UPDATE_KEY);
+  registerTriggerActions() {
+    this.cfgService.triggeredActions.forEach((triggerAction) => {
+      if (
+        triggerAction.trigger.type !==
+        ShoutTriggeredActionTriggerType.GAME_UPDATE
+      ) {
+        return;
+      }
 
-    if (buildid !== previousBuildId) {
-      await this.updateAllServers();
-      await this.redis.set(CSGO_LAST_UPDATE_KEY, buildid);
-    }
-  }
+      this.steamCmdHandlerService.registerUpdateTriggerAction(triggerAction);
+    });
 
-  async updateAllServers() {
-    const action: ShoutAction = {
-      commands: [
-        '/home/$USER/gs/csgoserver send "say An update was released. The server is about to restart."',
-        '/home/$USER/gs/csgoserver send "say An update was released. The server is about to restart."',
-        '/home/$USER/gs/csgoserver send "say An update was released. The server is about to restart."',
-        'sleep 15',
-        '/home/$USER/gs/csgoserver update',
-      ],
-      name: 'Update',
-    };
+    this.cfgService.triggeredActions.forEach((triggerAction) => {
+      if (triggerAction.trigger.type !== ShoutTriggeredActionTriggerType.CRON) {
+        return;
+      }
 
-    await this.sshService.shoutCommand(action, this.cfgService.servers, true);
+      const filteredServers = filterServersByActionParams(
+        triggerAction,
+        this.cfgService.servers,
+      );
+
+      cron.schedule(triggerAction.trigger.params.schedule, async () => {
+        await this.sshService.shoutCommand(
+          triggerAction,
+          filteredServers,
+          true,
+        );
+      });
+    });
   }
 
   ensureWorkDirExists() {

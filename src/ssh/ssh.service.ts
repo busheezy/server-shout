@@ -43,14 +43,19 @@ export class SshService {
     await Bluebird.mapSeries(servers, async (server) => {
       const connection = await this.connect(server);
 
-      const { logPath, serverLogOutPath } = this.getServerLogPaths(server);
+      const { logPath, serverLogOutPath, serverLogBgOutPath } =
+        this.getServerLogPaths(server);
 
       await ensureDir(logPath);
       const options = this.getOptions(action, server, quiet);
 
       await Bluebird.mapSeries(action.commands, async (command) => {
-        await appendFile(serverLogOutPath, `$ ${command}\n`);
-        console.log(`$ ${command}`);
+        if (quiet) {
+          await appendFile(serverLogBgOutPath, `$ ${command}\n`);
+        } else {
+          await appendFile(serverLogOutPath, `$ ${command}\n`);
+          console.log(`$ ${command}`);
+        }
 
         await connection.execCommand(command, options);
         await Bluebird.delay(50);
