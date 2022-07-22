@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
 import {
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
 
-export class ShoutServerConnection {
+class ShoutServerConnection {
   @IsString()
   host: string;
 
@@ -53,12 +54,85 @@ export class ShoutAction {
   cwd?: string;
 }
 
-export class ShoutConfig {
+enum ShoutTriggeredActionTriggerType {
+  GAME_UPDATE = 'game_update',
+  CRON = 'cron',
+}
+
+class ShoutTriggeredActionTrigger {
+  @IsEnum(ShoutTriggeredActionTriggerType)
+  type: ShoutTriggeredActionTriggerType;
+}
+
+class ShoutTriggeredActionTriggerGameUpdateParams {
+  @IsString()
+  game_id: string;
+}
+
+class ShoutTriggeredActionTriggerGameUpdate extends ShoutTriggeredActionTrigger {
+  type: ShoutTriggeredActionTriggerType.GAME_UPDATE;
+
   @ValidateNested()
+  @Type(() => ShoutTriggeredActionTriggerGameUpdateParams)
+  params: ShoutTriggeredActionTriggerGameUpdateParams;
+}
+
+class ShoutTriggeredActionTriggerCronParams {
+  @IsString()
+  schedule: string;
+
+  @IsString()
+  @IsOptional()
+  time_zone?: string;
+}
+
+class ShoutTriggeredActionTriggerCron extends ShoutTriggeredActionTrigger {
+  type: ShoutTriggeredActionTriggerType.CRON;
+
+  @ValidateNested()
+  @Type(() => ShoutTriggeredActionTriggerCronParams)
+  params: ShoutTriggeredActionTriggerCronParams;
+}
+
+export class ShoutTriggeredAction extends ShoutAction {
+  @ValidateNested()
+  @Type(() => ShoutTriggeredActionTrigger, {
+    keepDiscriminatorProperty: true,
+    discriminator: {
+      property: 'type',
+      subTypes: [
+        {
+          value: ShoutTriggeredActionTriggerGameUpdate,
+          name: ShoutTriggeredActionTriggerType.GAME_UPDATE,
+        },
+        {
+          value: ShoutTriggeredActionTriggerCron,
+          name: ShoutTriggeredActionTriggerType.CRON,
+        },
+      ],
+    },
+  })
+  trigger:
+    | ShoutTriggeredActionTriggerGameUpdate
+    | ShoutTriggeredActionTriggerCron;
+}
+
+export class ShoutConfig {
+  @ValidateNested({
+    each: true,
+  })
   @Type(() => ShoutServer)
   servers: ShoutServer[];
 
-  @ValidateNested()
+  @ValidateNested({
+    each: true,
+  })
   @Type(() => ShoutAction)
   quick_actions: ShoutAction[];
+
+  @ValidateNested({
+    each: true,
+  })
+  @Type(() => ShoutTriggeredAction)
+  triggered_actions: ShoutTriggeredAction[];
 }
