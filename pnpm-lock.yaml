@@ -15,6 +15,7 @@ specifiers:
   '@types/node': ^16.0.0
   '@types/node-cron': ^3.0.2
   '@types/prompts': ^2.0.14
+  '@types/retry-as-promised': ^2.3.3
   '@types/ssh2': ^1.11.4
   '@types/string-template': ^1.0.2
   '@types/tar': ^6.1.1
@@ -36,6 +37,7 @@ specifiers:
   prettier: ^2.3.2
   prompts: ^2.4.2
   reflect-metadata: ^0.1.13
+  retry-as-promised: ^6.0.0
   rimraf: ^3.0.2
   rxjs: ^7.2.0
   source-map-support: ^0.5.20
@@ -69,6 +71,7 @@ dependencies:
   node-ssh: 12.0.5
   prompts: 2.4.2
   reflect-metadata: 0.1.13
+  retry-as-promised: 6.0.0
   rimraf: 3.0.2
   rxjs: 7.5.6
   string-template: 1.0.0
@@ -86,6 +89,7 @@ devDependencies:
   '@types/node': 16.11.45
   '@types/node-cron': 3.0.2
   '@types/prompts': 2.0.14
+  '@types/retry-as-promised': 2.3.3
   '@types/ssh2': 1.11.4
   '@types/string-template': 1.0.2
   '@types/tar': 6.1.1
@@ -502,7 +506,6 @@ packages:
 
   /@types/bluebird/3.5.36:
     resolution: {integrity: sha512-HBNx4lhkxN7bx6P0++W8E289foSu8kO8GCk2unhuVggO+cE7rh9DhZUyPhUxNRG9m+5B5BTKxZQ5ZP92x/mx9Q==}
-    dev: false
 
   /@types/body-parser/1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
@@ -605,6 +608,12 @@ packages:
 
   /@types/range-parser/1.2.4:
     resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==}
+    dev: true
+
+  /@types/retry-as-promised/2.3.3:
+    resolution: {integrity: sha512-zqu/fEgkpcbrPTsFnIxWo99vlMXf67lxomuSyw2dRyhYIUJPyAnEtW6COlYs2IB10yQeBS2LSahaWsHtD+b3dg==}
+    dependencies:
+      '@types/bluebird': 3.5.36
     dev: true
 
   /@types/serve-static/1.13.10:
@@ -2776,6 +2785,10 @@ packages:
       onetime: 5.1.2
       signal-exit: 3.0.7
     dev: true
+
+  /retry-as-promised/6.0.0:
+    resolution: {integrity: sha512-L6tZqdjDQ9Lfhyaw0wig4xCMNO8KpUWf3x94H8ctiNl+cQZJYrG63CVwZTYSwKwSsc1NzMbd01GdJkhBepaVUg==}
+    dev: false
 
   /reusify/1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}

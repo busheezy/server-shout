@@ -5,15 +5,22 @@ import { NodeSSH, SSHExecCommandOptions } from 'node-ssh';
 import { join } from 'node:path';
 import { ShoutAction, ShoutServer } from '../cfg/cfg.types.js';
 
+import retry from 'retry-as-promised';
+
 const { ensureDir, appendFile } = fsExtraMod;
 
 @Injectable()
 export class SshService {
-  private async connect(server: ShoutServer) {
+  private connect(server: ShoutServer) {
     try {
-      const ssh = new NodeSSH();
-      const connection = await ssh.connect(server.connection);
-      return connection;
+      return retry(
+        () => {
+          return new NodeSSH().connect(server.connection);
+        },
+        {
+          max: 3,
+        },
+      );
     } catch {
       throw new Error(`Error while connecting to ${server.name}.`);
     }
@@ -57,7 +64,15 @@ export class SshService {
           console.log(`$ ${command}`);
         }
 
-        await connection.execCommand(command, options);
+        await retry(
+          () => {
+            return connection.execCommand(command, options);
+          },
+          {
+            max: 3,
+          },
+        );
+
         await Bluebird.delay(50);
       });
     });
