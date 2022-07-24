@@ -11,9 +11,9 @@ const { ensureDir, appendFile } = fsExtraMod;
 
 @Injectable()
 export class SshService {
-  private connect(server: ShoutServer) {
+  private async connect(server: ShoutServer) {
     try {
-      return retry(
+      const connection = await retry(
         () => {
           return new NodeSSH().connect(server.connection);
         },
@@ -21,6 +21,8 @@ export class SshService {
           max: 3,
         },
       );
+
+      return connection;
     } catch {
       throw new Error(`Error while connecting to ${server.name}.`);
     }
