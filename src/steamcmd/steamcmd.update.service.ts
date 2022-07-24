@@ -12,6 +12,7 @@ import { Redis } from 'ioredis';
 import { CfgService } from '../cfg/cfg.service.js';
 import { SshService } from '../ssh/ssh.service.js';
 import { filterServersByActionParams } from '../app.lib.js';
+import retry from 'retry-as-promised';
 
 type RegisteredTriggers = Record<string, ShoutTriggeredAction[]>;
 
@@ -55,7 +56,14 @@ export class SteamcmdUpdateService {
     const gameIds = Object.keys(this.registeredTriggers);
 
     await Bluebird.mapSeries(gameIds, async (gameId) => {
-      const info = await this.steamCmdService.getUpdateInfo(gameId);
+      const info = await retry(
+        () => {
+          return this.steamCmdService.getUpdateInfo(gameId);
+        },
+        {
+          max: 3,
+        },
+      );
 
       const redisKey = `APP_UPDATE_${gameId}_BUILD_ID`;
 

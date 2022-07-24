@@ -51,7 +51,7 @@ export class SteamCmdService {
   }
 
   getUpdateInfo(gameId: string): Promise<Update> {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       await this.ensureSteamCmdInstalled();
 
       const steamCmdPty = pty.spawn(
@@ -74,8 +74,12 @@ export class SteamCmdService {
       });
 
       steamCmdPty.onExit(() => {
-        const info = this.parseInfoData(gameId, data);
-        resolve(info);
+        try {
+          const info = this.parseInfoData(gameId, data);
+          resolve(info);
+        } catch (err) {
+          reject(err);
+        }
       });
     });
   }
