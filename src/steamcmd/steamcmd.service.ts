@@ -31,20 +31,15 @@ export class SteamCmdService {
     const executable = await this.isBinaryExecutable();
 
     if (!executable) {
-      console.log('Binary not found. Starting download.');
       await this.downloadBinaryTar();
 
-      console.log('extracting');
       await ensureDir(binaryFolderPath);
       await this.extractTar();
 
-      console.log('chmoding');
       await this.chmodBinary();
 
       const executableYet = await this.isBinaryExecutable();
-      if (executableYet) {
-        console.log('download successful');
-      } else {
+      if (!executableYet) {
         throw new Error("Still can't execute after downloading.");
       }
     }
@@ -115,7 +110,6 @@ export class SteamCmdService {
 
       writeStream.on('close', () => {
         if (!didError) {
-          console.log('Binary downloaded.');
           resolve();
         }
       });
