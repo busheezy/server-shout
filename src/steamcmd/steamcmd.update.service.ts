@@ -45,11 +45,9 @@ export class SteamcmdUpdateService {
   }
 
   async startCheckInterval() {
-    await this.checkForUpdates();
-
     setInterval(async () => {
       await this.checkForUpdates();
-    }, 5 * 1000);
+    }, 30 * 1000);
   }
 
   async checkForUpdates() {
